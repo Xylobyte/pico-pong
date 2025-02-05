@@ -105,7 +105,6 @@ void resetBall() {
     ballPos.y = screenH / 2;
 }
 
-
 bool gameUpdate() {
     // Players rackets update
     if (button_a.raw() && leftPlayerPos.y > 0) {
