@@ -153,15 +153,13 @@ bool gameUpdate() {
     // Ensure it does not go outside screen on the top or bottom side
     if ((tmpBallPos.y - ballRadius) < 0) {
         tmpBallPos.y = ballRadius;
-        auto newDir = ballDir.getDir();
-        newDir.y = -newDir.y;
-        ballDir.setDir(newDir);
+        float wallAngle = 0;
+        ballDir.setAngle(static_cast<float>(static_cast<int32_t>((360 + 2 * wallAngle - ballDir.getAngle())) % 360));
     }
     if ((tmpBallPos.y + ballRadius) > screenH) {
         tmpBallPos.y = screenH - ballRadius;
-        auto newDir = ballDir.getDir();
-        newDir.y = -newDir.y;
-        ballDir.setDir(newDir);
+        float wallAngle = 180;
+        ballDir.setAngle(static_cast<float>(static_cast<int32_t>((360 + 2 * wallAngle - ballDir.getAngle())) % 360));
     }
 
     ballPos = tmpBallPos;
