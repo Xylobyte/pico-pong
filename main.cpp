@@ -52,13 +52,6 @@ public:
 
     float getAngle() { return this->angle; }
 
-    void setDir(Vector2D val) {
-        this->dir.x = val.x;
-        this->dir.y = val.y;
-
-        this->normalize();
-    }
-
     Vector2D getDir() { return this->dir; }
 };
 
@@ -105,6 +98,10 @@ void resetBall() {
     ballPos.y = screenH / 2;
 }
 
+float calculateBounceAngle(float wallAngle, float ballAngle) {
+    return static_cast<float>(static_cast<int32_t>(360 + 2 * wallAngle - ballAngle) % 360);
+}
+
 bool gameUpdate() {
     // Players rackets update
     if (button_a.raw() && leftPlayerPos.y > 0) {
@@ -127,15 +124,11 @@ bool gameUpdate() {
     if ((tmpBallPos.x - ballRadius) < leftPlayerPos.x + racketWidth &&
         (tmpBallPos.y + ballRadius) > leftPlayerPos.y &&
         (tmpBallPos.y - ballRadius) < leftPlayerPos.y + racketHeight) {
-        auto newDir = ballDir.getDir();
-        newDir.x = -newDir.x;
-        ballDir.setDir(newDir);
+        ballDir.setAngle(calculateBounceAngle(270, ballDir.getAngle()));
     } else if ((tmpBallPos.x + ballRadius) > rightPlayerPos.x &&
                (tmpBallPos.y + ballRadius) > rightPlayerPos.y &&
                (tmpBallPos.y - ballRadius) < rightPlayerPos.y + racketHeight) {
-        auto newDir = ballDir.getDir();
-        newDir.x = -newDir.x;
-        ballDir.setDir(newDir);
+        ballDir.setAngle(calculateBounceAngle(90, ballDir.getAngle()));
     }
 
     // Ensure it does not go outside screen on the left or right side
@@ -153,13 +146,11 @@ bool gameUpdate() {
     // Ensure it does not go outside screen on the top or bottom side
     if ((tmpBallPos.y - ballRadius) < 0) {
         tmpBallPos.y = ballRadius;
-        float wallAngle = 0;
-        ballDir.setAngle(static_cast<float>(static_cast<int32_t>((360 + 2 * wallAngle - ballDir.getAngle())) % 360));
+        ballDir.setAngle(calculateBounceAngle(0, ballDir.getAngle()));
     }
     if ((tmpBallPos.y + ballRadius) > screenH) {
         tmpBallPos.y = screenH - ballRadius;
-        float wallAngle = 180;
-        ballDir.setAngle(static_cast<float>(static_cast<int32_t>((360 + 2 * wallAngle - ballDir.getAngle())) % 360));
+        ballDir.setAngle(calculateBounceAngle(180, ballDir.getAngle()));
     }
 
     ballPos = tmpBallPos;
