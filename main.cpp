@@ -87,7 +87,12 @@ Pen otherColor = graphics.create_pen(100, 100, 100);
 char winner = ' ';
 
 float generateRandomAngle() {
-    return (static_cast<float>(get_rand_32()) / static_cast<float>(UINT32_MAX)) * 360.0f;
+    float angle = (static_cast<float>(get_rand_32()) / static_cast<float>(UINT32_MAX)) * 360.0f;
+    const auto hTopDiff = 270 - angle;
+    const auto hBottomDiff = 90 - angle;
+    if (abs(hTopDiff) < 30) angle = angle - copysign(30.0f, hTopDiff);
+    else if (abs(hBottomDiff) < 30) angle = angle - copysign(30.0f, hBottomDiff);
+    return angle;
 }
 
 void resetBall() {
@@ -125,10 +130,12 @@ bool gameUpdate() {
         (tmpBallPos.y + ballRadius) > leftPlayerPos.y &&
         (tmpBallPos.y - ballRadius) < leftPlayerPos.y + racketHeight) {
         ballDir.setAngle(calculateBounceAngle(270, ballDir.getAngle()));
+        tmpBallPos.x = leftPlayerPos.x + racketWidth + ballRadius;
     } else if ((tmpBallPos.x + ballRadius) > rightPlayerPos.x &&
                (tmpBallPos.y + ballRadius) > rightPlayerPos.y &&
                (tmpBallPos.y - ballRadius) < rightPlayerPos.y + racketHeight) {
         ballDir.setAngle(calculateBounceAngle(90, ballDir.getAngle()));
+        tmpBallPos.x = rightPlayerPos.x - ballRadius;
     }
 
     // Ensure it does not go outside screen on the left or right side
