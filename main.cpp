@@ -86,8 +86,12 @@ Pen otherColor = graphics.create_pen(100, 100, 100);
 
 char winner = ' ';
 
+float generateRandomNumber() {
+    return static_cast<float>(get_rand_32()) / static_cast<float>(UINT32_MAX);
+}
+
 float generateRandomAngle() {
-    float angle = (static_cast<float>(get_rand_32()) / static_cast<float>(UINT32_MAX)) * 360.0f;
+    float angle = generateRandomNumber() * 360.0f;
     const auto hTopDiff = 270 - angle;
     const auto hBottomDiff = 90 - angle;
     if (abs(hTopDiff) < 30) angle = angle - copysign(30.0f, hTopDiff);
@@ -108,16 +112,21 @@ float calculateBounceAngle(float wallAngle, float ballAngle) {
 }
 
 bool gameUpdate() {
+    const auto isBtnA = button_a.raw();
+    const auto isBtnB = button_b.raw();
+    const auto isBtnX = button_x.raw();
+    const auto isBtnY = button_y.raw();
+
     // Players rackets update
-    if (button_a.raw() && leftPlayerPos.y > 0) {
+    if (isBtnA && leftPlayerPos.y > 0) {
         leftPlayerPos.y -= racketSpeed;
-    } else if (button_b.raw() && leftPlayerPos.y < static_cast<float>(st7789.height) - racketHeight) {
+    } else if (isBtnB && leftPlayerPos.y < static_cast<float>(st7789.height) - racketHeight) {
         leftPlayerPos.y += racketSpeed;
     }
 
-    if (button_x.raw() && rightPlayerPos.y > 0) {
+    if (isBtnX && rightPlayerPos.y > 0) {
         rightPlayerPos.y -= racketSpeed;
-    } else if (button_y.raw() && rightPlayerPos.y < static_cast<float>(st7789.height) - racketHeight) {
+    } else if (isBtnY && rightPlayerPos.y < static_cast<float>(st7789.height) - racketHeight) {
         rightPlayerPos.y += racketSpeed;
     }
 
@@ -129,12 +138,34 @@ bool gameUpdate() {
     if ((tmpBallPos.x - ballRadius) < leftPlayerPos.x + racketWidth &&
         (tmpBallPos.y + ballRadius) > leftPlayerPos.y &&
         (tmpBallPos.y - ballRadius) < leftPlayerPos.y + racketHeight) {
-        ballDir.setAngle(calculateBounceAngle(270, ballDir.getAngle()));
+        const auto random = (generateRandomNumber() * 50 - 25);
+        float bounceAngle = 0;
+
+        if ((isBtnA && ballDir.getDir().y > 0) || (isBtnB && ballDir.getDir().y < 0)) {
+            if (ballSpeed >= 1.4f) ballSpeed -= 0.2f;
+            bounceAngle = static_cast<float>(static_cast<int32_t>(ballDir.getAngle() + 180) % 360);
+        } else {
+            if ((isBtnA || isBtnB) && ballSpeed < 3.0f) ballSpeed += 0.2f;
+            bounceAngle = calculateBounceAngle(270, ballDir.getAngle());
+        }
+
+        ballDir.setAngle(bounceAngle + random);
         tmpBallPos.x = leftPlayerPos.x + racketWidth + ballRadius;
     } else if ((tmpBallPos.x + ballRadius) > rightPlayerPos.x &&
                (tmpBallPos.y + ballRadius) > rightPlayerPos.y &&
                (tmpBallPos.y - ballRadius) < rightPlayerPos.y + racketHeight) {
-        ballDir.setAngle(calculateBounceAngle(90, ballDir.getAngle()));
+        const auto random = (generateRandomNumber() * 50 - 25);
+        float bounceAngle = 0;
+
+        if ((isBtnX && ballDir.getDir().y > 0) || (isBtnY && ballDir.getDir().y < 0)) {
+            if (ballSpeed >= 1.4f) ballSpeed -= 0.2f;
+            bounceAngle = static_cast<float>(static_cast<int32_t>(ballDir.getAngle() + 180) % 360);
+        } else {
+            if ((isBtnX || isBtnY) && ballSpeed < 3.0f) ballSpeed += 0.2f;
+            bounceAngle = calculateBounceAngle(270, ballDir.getAngle());
+        }
+
+        ballDir.setAngle(bounceAngle + random);
         tmpBallPos.x = rightPlayerPos.x - ballRadius;
     }
 
